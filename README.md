@@ -65,25 +65,18 @@ machines using a Durable Object (`ClipRelay`), instead of polling. When one
 client uploads, every other connected client gets it pushed immediately —
 no delay, no repeated HTTP requests.
 
-### Setup (requires `wrangler`, one-time)
-This part can't be done from the Pages dashboard alone — Durable Object
-bindings must be declared in `wrangler.toml`.
+### Setup
+Durable Object bindings can't be added through the Pages dashboard UI, so
+`wrangler.toml` (included in this repo) declares the `CLIP_RELAY` binding.
+Your existing `DB` (D1) binding stays exactly as configured in the Pages
+dashboard — `wrangler.toml` intentionally does not redeclare it.
 
-1. Find your existing D1 `database_id`:
-   ```bash
-   npx wrangler d1 list
-   ```
-   Paste it into `wrangler.toml` in place of `PASTE-YOUR-DATABASE-ID-HERE`.
+Just commit and push this repo to GitHub as normal; Cloudflare Pages reads
+`wrangler.toml` during the build and provisions the Durable Object binding
+and migration automatically. No local `wrangler` install needed.
 
-2. Deploy (this registers the Durable Object class and its binding):
-   ```bash
-   npx wrangler pages deploy public --project-name clip-synced
-   ```
-   Wrangler reads `wrangler.toml` automatically and provisions the DO
-   migration + binding alongside your existing D1 binding.
-
-3. Your existing `CLIPBOARD_SECRET` environment variable is reused as-is —
-   no new secret needed.
+Your existing `CLIPBOARD_SECRET` environment variable is reused as-is — no
+new secret needed.
 
 ### Connect
 ```
