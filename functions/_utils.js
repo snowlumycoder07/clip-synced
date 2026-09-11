@@ -1,7 +1,3 @@
-export const HISTORY_LIMIT = 20;
-export const LATEST_KEY = "latest";
-export const HISTORY_KEY = "history";
-
 export function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
@@ -18,3 +14,5 @@ export function checkAuth(request, env) {
   const key = request.headers.get("x-api-key");
   return env.CLIPBOARD_SECRET && key === env.CLIPBOARD_SECRET;
 }
+
+export const HISTORY_LIMIT = 20;

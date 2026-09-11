@@ -1,14 +1,15 @@
-import { json, checkAuth, LATEST_KEY } from "../_utils.js";
+import { json, checkAuth } from "../_utils.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
+  if (!checkAuth(request, env)) return json({ error: "Unauthorized" }, 401);
 
-  if (!checkAuth(request, env)) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const row = await env.DB.prepare(
+    "SELECT text, updated_at FROM clips ORDER BY id DESC LIMIT 1"
+  ).first();
 
-  const raw = await env.CLIPBOARD_KV.get(LATEST_KEY);
-  return json(raw ? JSON.parse(raw) : { text: "", updatedAt: null });
+  if (!row) return json({ text: "", updatedAt: null });
+  return json({ text: row.text, updatedAt: row.updated_at });
 }
 
 export async function onRequestOptions() {
