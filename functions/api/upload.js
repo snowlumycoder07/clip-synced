@@ -29,7 +29,7 @@ export async function onRequestPost(context) {
     .bind(text, updatedAt)
     .run();
 
-  return json({ ok: true, entry: { text, updatedAt } });
+  return json({ ok: true, entry: { updatedAt } });
 }
 
 export async function onRequestOptions() {
