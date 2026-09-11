@@ -58,6 +58,52 @@ curl https://YOUR-PROJECT.pages.dev/api/history \
   -H "x-api-key: YOUR_SECRET"
 ```
 
+## Live push (WebSocket via Durable Object)
+
+`/api/ws` now gives real-time, instant-push clipboard sync between multiple
+machines using a Durable Object (`ClipRelay`), instead of polling. When one
+client uploads, every other connected client gets it pushed immediately —
+no delay, no repeated HTTP requests.
+
+### Setup (requires `wrangler`, one-time)
+This part can't be done from the Pages dashboard alone — Durable Object
+bindings must be declared in `wrangler.toml`.
+
+1. Find your existing D1 `database_id`:
+   ```bash
+   npx wrangler d1 list
+   ```
+   Paste it into `wrangler.toml` in place of `PASTE-YOUR-DATABASE-ID-HERE`.
+
+2. Deploy (this registers the Durable Object class and its binding):
+   ```bash
+   npx wrangler pages deploy public --project-name clip-synced
+   ```
+   Wrangler reads `wrangler.toml` automatically and provisions the DO
+   migration + binding alongside your existing D1 binding.
+
+3. Your existing `CLIPBOARD_SECRET` environment variable is reused as-is —
+   no new secret needed.
+
+### Connect
+```
+wss://YOUR-PROJECT.pages.dev/api/ws?key=YOUR_SECRET
+```
+
+Client protocol (JSON messages over the socket):
+- Server → client on connect: `{"type":"clip","text":"...","updatedAt":"..."}`
+  (or `{"type":"welcome"}` if nothing has ever been uploaded yet)
+- Client → server to publish a new clip: `{"type":"upload","text":"..."}`
+- Server → client ack: `{"type":"ack","updatedAt":"..."}`
+- Either side may send `{"type":"ping"}` → server replies `{"type":"pong"}`
+  (recommended every ~20s to keep the connection alive)
+- Errors: `{"type":"error","error":"..."}` (e.g. `"unauthorized"`, `"no_text"`)
+
+Every upload through `/api/ws` is also mirrored into the same D1 `clips`
+table, so `/api/latest` and `/api/history` stay fully in sync with the
+live-push path — you can use either the WebSocket or the old REST endpoints
+interchangeably.
+
 ## Notes
 - Table `clips` stores every upload permanently (unlike the old KV version
   which only kept a rolling 20-item history + 1 latest key). If you want

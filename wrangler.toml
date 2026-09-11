@@ -1,0 +1,14 @@
+name = "clip-synced"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "public"
+
+# --- Durable Object binding (new: powers /api/ws live push) ---
+[[durable_objects.bindings]]
+name = "CLIP_RELAY"
+class_name = "ClipRelay"
+script_name = "clip-synced"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ClipRelay"]
+
